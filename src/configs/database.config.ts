@@ -1,0 +1,20 @@
+import { registerAs } from '@nestjs/config';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { CONSTANT_CONFIG } from 'src/constants/config.constants';
+import { CONSTANT_ENV } from 'src/constants/env.config';
+
+export default registerAs(
+  CONSTANT_CONFIG.MYSQL,
+  (): TypeOrmModuleOptions => ({
+    type: 'mysql',
+    host: process.env.DB_HOST || 'localhost',
+    port: Number(process.env.DB_PORT) || 3306,
+    username: process.env.DB_USERNAME || 'root',
+    password: process.env.DB_PASSWORD || 'root',
+    database: process.env.DB_DATABASE || 'profile',
+    synchronize: process.env.NODE_ENV === CONSTANT_ENV.DEV || true,
+    entities: [__dirname + '/../**/*.entity.{ts,js}'],
+    maxQueryExecutionTime: 3000, // 3s
+    poolSize: 10,
+  }),
+);
