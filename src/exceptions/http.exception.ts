@@ -1,14 +1,7 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ResponseError } from 'src/classes';
-import { CONSTANT_ENV } from 'src/constants/env.config';
+import { CONSTANT_ENV } from 'src/constants/env.contant';
 import { IStackTrace } from 'src/interfaces/common';
 
 @Catch(HttpException)
@@ -22,21 +15,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const errorException = exception.getResponse() as ResponseError;
 
     //
-    const statusCode =
-      errorException?.statusCode ||
-      exception.getStatus() ||
-      HttpStatus.INTERNAL_SERVER_ERROR;
+    const statusCode = errorException?.statusCode || exception.getStatus() || HttpStatus.INTERNAL_SERVER_ERROR;
 
     //
     const message =
-      typeof errorException === 'string'
-        ? errorException
-        : (errorException as any).message || 'Unknown error';
+      typeof errorException === 'string' ? errorException : (errorException as any).message || 'Unknown error';
 
     //
     const stack: IStackTrace | undefined =
-      process.env.NODE_ENV === CONSTANT_ENV.DEV &&
-      exception instanceof HttpException
+      process.env.NODE_ENV === CONSTANT_ENV.DEV && exception instanceof HttpException
         ? {
             stack: exception.stack,
             method: request.method,

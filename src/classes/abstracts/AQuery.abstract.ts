@@ -12,6 +12,6 @@ export abstract class AQueries implements IQueries {
   page: string;
 
   @Optional()
-  @ApiProperty({ type: 'string' })
-  q: string;
+  @ApiProperty({ type: 'string', required: false })
+  q?: string;
 }

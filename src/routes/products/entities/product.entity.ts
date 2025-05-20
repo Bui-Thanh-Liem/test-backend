@@ -2,14 +2,7 @@ import { ABaseEntity } from 'src/classes/abstracts/ABaseEntity.abstract';
 import { IProduct } from 'src/interfaces/model/product.model';
 import { CategoryEntity } from 'src/routes/categories/entities/category.entity';
 import { UserEntity } from 'src/routes/users/entities/user.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  JoinTable,
-  ManyToMany,
-  ManyToOne,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne } from 'typeorm';
 
 @Entity('product')
 export class ProductEntity extends ABaseEntity implements IProduct {

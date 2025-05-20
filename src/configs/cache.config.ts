@@ -1,6 +1,6 @@
 import { registerAs } from '@nestjs/config';
 import { RedisOptions } from 'ioredis';
-import { CONSTANT_CONFIG } from 'src/constants/config.constants';
+import { CONSTANT_CONFIG } from 'src/constants/config.constant';
 
 export default registerAs(
   CONSTANT_CONFIG.REDIS,

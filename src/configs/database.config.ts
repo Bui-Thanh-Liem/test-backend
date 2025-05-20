@@ -1,7 +1,7 @@
 import { registerAs } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { CONSTANT_CONFIG } from 'src/constants/config.constants';
-import { CONSTANT_ENV } from 'src/constants/env.config';
+import { CONSTANT_CONFIG } from 'src/constants/config.constant';
+import { CONSTANT_ENV } from 'src/constants/env.contant';
 
 export default registerAs(
   CONSTANT_CONFIG.MYSQL,

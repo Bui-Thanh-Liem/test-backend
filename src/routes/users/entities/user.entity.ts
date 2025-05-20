@@ -4,27 +4,21 @@ import { Exclude } from 'class-transformer';
 import { ABaseEntity } from 'src/classes/abstracts/ABaseEntity.abstract';
 import { IUser } from 'src/interfaces/model/user.model';
 import { TokenEntity } from 'src/share/tokens/entities/token.entity';
-import {
-  BeforeInsert,
-  BeforeUpdate,
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
 @Entity('user')
 export class UserEntity extends ABaseEntity implements IUser {
-  @Column({ type: 'varchar', length: 24, unique: true })
+  @Column({ type: 'varchar', length: 50, unique: true })
   fullName: string;
 
-  @Column({ type: 'varchar', length: 24, unique: true })
+  @Column({ type: 'varchar', length: 50, unique: true })
   email: string;
 
   @Exclude()
   @Column({ type: 'varchar' })
   password: string;
 
+  @Exclude()
   @OneToMany(() => TokenEntity, (token) => token.user, { cascade: true })
   tokens: TokenEntity[];
 
@@ -32,9 +26,11 @@ export class UserEntity extends ABaseEntity implements IUser {
   isAdmin: boolean;
 
   @ManyToOne(() => UserEntity, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'created_by' })
   createdBy: UserEntity;
 
   @ManyToOne(() => UserEntity, { onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'updated_by' })
   updatedBy: UserEntity;
 
   @BeforeInsert()

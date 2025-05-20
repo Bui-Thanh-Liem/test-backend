@@ -1,20 +1,12 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  SerializeOptions,
-} from '@nestjs/common';
-import { UsersService } from './users.service';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, SerializeOptions } from '@nestjs/common';
+import { ResponseSuccess } from 'src/classes';
+import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
+import { ActiveUser } from 'src/decorators/activeUser.decorator';
+import { IPayloadToken } from 'src/interfaces/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ResponseSuccess } from 'src/classes';
 import { UserEntity } from './entities/user.entity';
-import { IPayloadToken } from 'src/interfaces/common';
-import { ActiveUser } from 'src/decorators/activeUser.decorator';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
@@ -22,31 +14,32 @@ export class UsersController {
 
   @Post()
   @SerializeOptions({ type: UserEntity })
-  async create(
-    @Body() payload: CreateUserDto,
-    @ActiveUser() activeUser: IPayloadToken,
-  ) {
-    const results = await this.usersService.create(payload, activeUser.userId);
+  async create(@Body() payload: CreateUserDto, @ActiveUser() activeUser: IPayloadToken) {
+    const results = await this.usersService.create(payload, activeUser?.userId);
     return new ResponseSuccess('Success', results);
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(@Query() queries: AQueries, @ActiveUser() activeUser: IPayloadToken) {
+    const results = await this.usersService.findAll(queries, activeUser?.userId);
+    return new ResponseSuccess('Success', results);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id') id: string, @ActiveUser() activeUser: IPayloadToken) {
+    const results = await this.usersService.findOneById(id, activeUser?.userId);
+    return new ResponseSuccess('Success', results);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(@Param('id') id: string, @Body() payload: UpdateUserDto, @ActiveUser() activeUser: IPayloadToken) {
+    const results = await this.usersService.update(id, payload, activeUser?.userId);
+    return new ResponseSuccess('Success', results);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async remove(@Param('id') id: string, @ActiveUser() activeUser: IPayloadToken) {
+    const results = await this.usersService.remove(id, activeUser?.userId);
+    return new ResponseSuccess('Success', results);
   }
 }

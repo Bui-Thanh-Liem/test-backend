@@ -57,11 +57,7 @@ export class TokensService {
     });
 
     //
-    if (
-      !findToken ||
-      findToken.isRevoked ||
-      findToken.isRefreshTokenExpired()
-    ) {
+    if (!findToken || findToken.isRevoked || findToken.isRefreshTokenExpired()) {
       throw new UnauthorizedException('Login again');
     }
 

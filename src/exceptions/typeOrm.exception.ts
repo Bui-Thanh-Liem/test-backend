@@ -1,13 +1,7 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ResponseError } from 'src/classes';
-import { CONSTANT_ENV } from 'src/constants/env.config';
+import { CONSTANT_ENV } from 'src/constants/env.contant';
 import { IStackTrace } from 'src/interfaces/common';
 import { QueryFailedError, TypeORMError } from 'typeorm';
 
@@ -43,8 +37,7 @@ export class TypeOrmExceptionFilter implements ExceptionFilter {
     }
 
     const stack: IStackTrace | undefined =
-      process.env.NODE_ENV === CONSTANT_ENV.DEV &&
-      exception instanceof TypeORMError
+      process.env.NODE_ENV === CONSTANT_ENV.DEV && exception instanceof TypeORMError
         ? {
             stack: exception.stack,
             method: request.method,
