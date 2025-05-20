@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from './entities/category.entity';
+import { TTranslations } from 'src/types/translations.type';
 
 @Injectable()
 export class CategoriesService {
@@ -18,21 +19,23 @@ export class CategoriesService {
   ) {}
 
   async create(payload: CreateCategoryDto, userActiveId: string): Promise<CategoryEntity> {
-    const { name, description, parent } = payload;
+    const { name_vi, name_en, description_vi, description_en, parent } = payload;
 
     //
     const creator = await this.userService.validateUser(userActiveId);
 
     // exists
-    const isExistName = await this.categoryRepository.existsBy({ name });
+    const isExistName = await this.categoryRepository.existsBy({ name_vi, name_en });
     if (isExistName) {
       throw new ConflictException('Name already exists');
     }
 
     //
     const newCategory = this.categoryRepository.create({
-      name,
-      description,
+      name_vi,
+      name_en,
+      description_vi,
+      description_en,
       createdBy: creator,
     });
 
@@ -48,7 +51,11 @@ export class CategoriesService {
     return await this.categoryRepository.save(newCategory);
   }
 
-  async findAll(queries: AQueries, userActiveId: string): Promise<IResponseFindAll<CategoryEntity>> {
+  async findAll(
+    lang: TTranslations,
+    queries: AQueries,
+    userActiveId: string,
+  ): Promise<IResponseFindAll<CategoryEntity>> {
     const { limit, page, q } = queries;
     const { skip, take } = getPaginationParams(page, limit);
     const queryBuilder = this.categoryRepository.createQueryBuilder('category');
@@ -59,9 +66,9 @@ export class CategoriesService {
     //
     queryBuilder.select([
       'category.id',
-      'category.name',
-      'category.description',
-      'category.slug',
+      `category.name_${lang} AS name`,
+      `category.description_${lang} AS description`,
+      `category.slug_${lang} AS slug`,
       'category.createdAt',
       'category.updatedAt',
     ]);
@@ -72,7 +79,7 @@ export class CategoriesService {
     queryBuilder.leftJoinAndSelect('category.parent', 'parent');
 
     if (q) {
-      queryBuilder.where('(category.name LIKE :q)', {
+      queryBuilder.where(`category.name_${lang} LIKE :q`, {
         q: `%${q.replace(/[%_]/g, '\\$&')}%`,
       });
     }
@@ -85,21 +92,37 @@ export class CategoriesService {
     return { items, totalItems };
   }
 
-  async findOneById(id: string): Promise<CategoryEntity> {
-    const category = await this.categoryRepository.findOne({
-      where: { id },
-      relations: ['createdBy', 'updatedBy', 'parent', 'children'],
-    });
+  async findOneById(id: string, lang: TTranslations = 'vi'): Promise<any> {
+    const qb = this.categoryRepository.createQueryBuilder('category');
 
-    if (!category) {
+    qb.select([
+      'category.id',
+      `category.name_${lang} AS name`,
+      `category.description_${lang} AS description`,
+      `category.slug_${lang} AS slug`,
+      'category.createdAt',
+      'category.updatedAt',
+    ]);
+
+    qb.leftJoinAndSelect('category.createdBy', 'createdBy');
+    qb.leftJoinAndSelect('category.updatedBy', 'updatedBy');
+    qb.leftJoinAndSelect('category.parent', 'parent');
+    qb.leftJoinAndSelect('category.children', 'children');
+
+    qb.where('category.id = :id', { id });
+
+    const categoryRaw = await qb.getRawOne();
+
+    if (!categoryRaw) {
       throw new NotFoundException('Category not found');
     }
 
-    return category;
+    // Bạn có thể map lại kết quả nếu muốn
+    return categoryRaw;
   }
 
   async update(id: string, payload: UpdateCategoryDto, userActiveId: string) {
-    const { name, description, parent } = payload;
+    const { name_vi, name_en, description_vi, description_en, parent } = payload;
 
     //
     const editor = await this.userService.validateUser(userActiveId);
@@ -111,17 +134,20 @@ export class CategoriesService {
     }
 
     //
-    if (name && category.name !== name) {
-      const isExistName = await this.categoryRepository.existsBy({
-        name,
-      });
-      if (isExistName) {
-        throw new ConflictException('Name already exists');
-      }
+    if (name_vi && category.name_vi !== name_vi) {
+      const existsVi = await this.categoryRepository.exist({ where: { name_vi } });
+      if (existsVi) throw new ConflictException('Vietnamese name already exists');
     }
 
-    category.name = name || category.name;
-    category.description = description !== undefined ? description : category.description;
+    if (name_en && category.name_en !== name_en) {
+      const existsEn = await this.categoryRepository.exist({ where: { name_en } });
+      if (existsEn) throw new ConflictException('English name already exists');
+    }
+
+    category.name_vi = name_vi ?? category.name_vi;
+    category.name_en = name_en ?? category.name_en;
+    category.description_vi = description_vi ?? category.description_vi;
+    category.description_en = description_en ?? category.description_en;
     category.updatedBy = editor;
 
     //

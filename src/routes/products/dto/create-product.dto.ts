@@ -6,7 +6,12 @@ export class CreateProductDto implements Partial<IProduct> {
   @ApiProperty({ default: 'IPhone 14 Pro Max' })
   @IsNotEmpty({ message: 'Name is required' })
   @IsString({ message: 'Name must be a string' })
-  name: string;
+  name_vi: string;
+
+  @ApiProperty({ default: 'IPhone 14 Pro Max' })
+  @IsNotEmpty({ message: 'Name is required' })
+  @IsString({ message: 'Name must be a string' })
+  name_en: string;
 
   @ApiProperty({ default: 25000000 })
   @IsNotEmpty({ message: 'Price is required' })

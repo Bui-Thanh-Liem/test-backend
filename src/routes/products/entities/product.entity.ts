@@ -9,13 +9,22 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, JoinTable, Many
 @Entity('product')
 export class ProductEntity extends ABaseEntity implements IProduct {
   @Column({ type: 'varchar', length: 100, unique: true })
-  name: string;
+  name_vi: string;
+
+  @Column({ type: 'varchar', length: 100, unique: true })
+  name_en: string;
 
   @Column({ type: 'varchar', length: 200, unique: true })
-  slug: string;
+  slug_vi: string;
+
+  @Column({ type: 'varchar', length: 200, unique: true })
+  slug_en: string;
 
   @Column({ type: 'decimal', precision: 20, scale: 2 })
   price: number;
+
+  @Column({ type: 'int' })
+  stock: number;
 
   @ManyToOne(() => CategoryEntity, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'category_id' })
@@ -47,7 +56,20 @@ export class ProductEntity extends ABaseEntity implements IProduct {
   @BeforeInsert()
   @BeforeUpdate()
   async createSlug() {
-    this.slug = slugify(this.name || '', {
+    this.slug_vi = slugify(this.name_vi || '', {
+      replacement: '-',
+      remove: undefined,
+      lower: false,
+      strict: false,
+      locale: 'vi',
+      trim: true,
+    });
+  }
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async createSlugEN() {
+    this.slug_en = slugify(this.name_en || '', {
       replacement: '-',
       remove: undefined,
       lower: false,

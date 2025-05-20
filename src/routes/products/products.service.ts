@@ -11,6 +11,7 @@ import { UsersService } from '../users/users.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductEntity } from './entities/product.entity';
+import { TTranslations } from 'src/types/translations.type';
 
 @Injectable()
 export class ProductsService {
@@ -26,20 +27,21 @@ export class ProductsService {
   ) {}
 
   async create(payload: CreateProductDto, userActiveId: string): Promise<ProductEntity> {
-    const { name, price, category, subCategory } = payload;
+    const { name_vi, name_en, price, category, subCategory } = payload;
 
     //
     const creator = await this.userService.validateUser(userActiveId);
 
     // exists
-    const isExistName = await this.productRepository.existsBy({ name });
+    const isExistName = await this.productRepository.existsBy({ name_vi, name_en });
     if (isExistName) {
       throw new ConflictException('Name already exists');
     }
 
     //
     const newProduct = this.productRepository.create({
-      name,
+      name_vi,
+      name_en,
       price,
       createdBy: creator,
     });
@@ -65,7 +67,11 @@ export class ProductsService {
     return await this.productRepository.save(newProduct);
   }
 
-  async findAll(queries: AQueries, userActiveId: string): Promise<IResponseFindAll<ProductEntity>> {
+  async findAll(
+    lang: TTranslations,
+    queries: AQueries,
+    userActiveId: string,
+  ): Promise<IResponseFindAll<ProductEntity>> {
     const { limit, page, q } = queries;
     const { skip, take } = getPaginationParams(page, limit);
     const queryBuilder = this.productRepository.createQueryBuilder('product');
@@ -82,9 +88,10 @@ export class ProductsService {
     //
     queryBuilder.select([
       'product.id',
-      'product.name',
+      `product.name_${lang} AS name`,
       'product.price',
-      'product.slug',
+      'product.stock',
+      `product.slug_${lang} AS slug`,
       'product.createdAt',
       'product.updatedAt',
     ]);
@@ -96,7 +103,7 @@ export class ProductsService {
     queryBuilder.leftJoinAndSelect('product.subCategory', 'subCategory');
 
     if (q) {
-      queryBuilder.where('(product.name LIKE :q)', {
+      queryBuilder.where(`product.name_${lang} LIKE :q`, {
         q: `%${q.replace(/[%_]/g, '\\$&')}%`,
       });
     }
@@ -117,11 +124,26 @@ export class ProductsService {
     return { items, totalItems };
   }
 
-  async findOneById(id: string) {
-    const product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['createdBy', 'updatedBy', 'category', 'subCategory'],
-    });
+  async findOneById(id: string, lang: TTranslations = 'vi') {
+    const qb = this.productRepository.createQueryBuilder('product');
+
+    qb.select([
+      'product.id',
+      'product.price',
+      'product.stock',
+      `product.name_${lang} AS name`,
+      `product.slug_${lang} AS slug`,
+      'product.createdAt',
+      'product.updatedAt',
+    ]);
+
+    qb.leftJoinAndSelect('product.createdBy', 'createdBy');
+    qb.leftJoinAndSelect('product.updatedBy', 'updatedBy');
+    qb.leftJoinAndSelect('product.category', 'category');
+    qb.leftJoinAndSelect('product.subCategory', 'subCategory');
+    qb.where('category.id = :id', { id });
+
+    const product = await qb.getRawOne();
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -131,7 +153,7 @@ export class ProductsService {
   }
 
   async update(id: string, payload: UpdateProductDto, userActiveId: string) {
-    const { name, price, category, subCategory } = payload;
+    const { name_vi, name_en, price, category, subCategory } = payload;
 
     //
     const editor = await this.userService.validateUser(userActiveId);
@@ -143,16 +165,26 @@ export class ProductsService {
     }
 
     //
-    if (name && product.name !== name) {
+    if (name_vi && product.name_vi !== name_vi) {
       const isExistName = await this.productRepository.existsBy({
-        name,
+        name_vi,
       });
       if (isExistName) {
-        throw new ConflictException('Name already exists');
+        throw new ConflictException('Vietnamese name already exists');
       }
     }
 
-    product.name = name || product.name;
+    if (name_en && product.name_en !== name_en) {
+      const isExistName = await this.productRepository.existsBy({
+        name_en,
+      });
+      if (isExistName) {
+        throw new ConflictException('English name already exists');
+      }
+    }
+
+    product.name_vi = name_vi || product.name_vi;
+    product.name_en = name_en || product.name_en;
     product.price = price || product.price;
     product.updatedBy = editor;
 

@@ -38,7 +38,7 @@ export class JwtAuthGuard extends AuthGuard(CONSTANT_STRATEGY.AUTH_GUARD) {
         this.logger.debug(info);
         throw new UnauthorizedException('Token is expired');
       }
-      throw new UnauthorizedException('Token is invalid');
+      throw new UnauthorizedException('Login again');
     }
 
     //

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
 import { ResponseSuccess } from 'src/classes';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { ActiveUser } from 'src/decorators/activeUser.decorator';
@@ -6,6 +6,7 @@ import { IPayloadToken } from 'src/interfaces/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductsService } from './products.service';
+import { TTranslations } from 'src/types/translations.type';
 
 @Controller('products')
 export class ProductsController {
@@ -18,14 +19,22 @@ export class ProductsController {
   }
 
   @Get('/search')
-  async search(@Query() queries: AQueries, @ActiveUser() activeUser: IPayloadToken) {
-    const results = await this.productsService.findAll(queries, activeUser?.userId);
+  async search(
+    @Query() queries: AQueries,
+    @Headers('accept-language') langHeader: TTranslations,
+    @ActiveUser() activeUser: IPayloadToken,
+  ) {
+    const results = await this.productsService.findAll(langHeader, queries, activeUser?.userId);
     return new ResponseSuccess('Success', results);
   }
 
   @Get()
-  async findAll(@Query() queries: AQueries, @ActiveUser() activeUser: IPayloadToken) {
-    const results = await this.productsService.findAll(queries, activeUser?.userId);
+  async findAll(
+    @Query() queries: AQueries,
+    @Headers('accept-language') langHeader: TTranslations,
+    @ActiveUser() activeUser: IPayloadToken,
+  ) {
+    const results = await this.productsService.findAll(langHeader, queries, activeUser?.userId);
     return new ResponseSuccess('Success', results);
   }
 
@@ -40,8 +49,8 @@ export class ProductsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const result = await this.productsService.findOneById(id);
+  async findOne(@Param('id') id: string, @Headers('accept-language') langHeader: TTranslations) {
+    const result = await this.productsService.findOneById(id, langHeader);
     return new ResponseSuccess('Success', result);
   }
 
