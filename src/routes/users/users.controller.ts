@@ -15,8 +15,8 @@ export class UsersController {
   @Post()
   @SerializeOptions({ type: UserEntity })
   async create(@Body() payload: CreateUserDto, @ActiveUser() activeUser: IPayloadToken) {
-    const results = await this.usersService.create(payload, activeUser?.userId);
-    return new ResponseSuccess('Success', results);
+    const result = await this.usersService.create(payload, activeUser?.userId);
+    return new ResponseSuccess('Success', result);
   }
 
   @Get()
@@ -26,20 +26,20 @@ export class UsersController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string, @ActiveUser() activeUser: IPayloadToken) {
-    const results = await this.usersService.findOneById(id, activeUser?.userId);
-    return new ResponseSuccess('Success', results);
+  async findOne(@Param('id') id: string) {
+    const result = await this.usersService.findOneById(id);
+    return new ResponseSuccess('Success', result);
   }
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() payload: UpdateUserDto, @ActiveUser() activeUser: IPayloadToken) {
-    const results = await this.usersService.update(id, payload, activeUser?.userId);
-    return new ResponseSuccess('Success', results);
+    const result = await this.usersService.update(id, payload, activeUser?.userId);
+    return new ResponseSuccess('Success', result);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string, @ActiveUser() activeUser: IPayloadToken) {
-    const results = await this.usersService.remove(id, activeUser?.userId);
-    return new ResponseSuccess('Success', results);
+    const result = await this.usersService.remove(id, activeUser?.userId);
+    return new ResponseSuccess('Success', result);
   }
 }

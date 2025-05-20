@@ -19,6 +19,7 @@ import { createKeyv } from '@keyv/redis';
 import { Keyv } from 'keyv';
 import { CacheableMemory } from 'cacheable';
 import { RedisOptions } from 'ioredis';
+import { TranslationsModule } from './routes/translations/translations.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { RedisOptions } from 'ioredis';
     TokensModule,
     CategoriesModule,
     AuthModule,
+    TranslationsModule,
   ],
   controllers: [AppController],
   providers: [

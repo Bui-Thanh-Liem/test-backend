@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 import { ICategory } from 'src/interfaces/model/category.model';
 
 const FULLNAME_MIN = 2;
@@ -25,9 +25,4 @@ export class CreateCategoryDto implements Partial<ICategory> {
   @IsOptional()
   @IsString()
   parent?: string;
-
-  @IsOptional()
-  @IsArray()
-  @IsUUID('all', { each: true })
-  children?: string[];
 }

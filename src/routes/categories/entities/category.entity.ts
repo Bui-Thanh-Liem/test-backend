@@ -20,7 +20,7 @@ export class CategoryEntity extends ABaseEntity implements ICategory {
     nullable: true,
   })
   @JoinColumn({ name: 'parent_id' })
-  parent: CategoryEntity;
+  parent: CategoryEntity | null;
 
   @OneToMany(() => CategoryEntity, (category) => category.parent, { onDelete: 'CASCADE', nullable: true })
   children: CategoryEntity[];

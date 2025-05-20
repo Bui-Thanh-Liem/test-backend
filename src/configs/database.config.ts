@@ -12,7 +12,7 @@ export default registerAs(
     username: process.env.DB_USERNAME || 'root',
     password: process.env.DB_PASSWORD || 'root',
     database: process.env.DB_DATABASE || 'profile',
-    synchronize: process.env.NODE_ENV === CONSTANT_ENV.DEV || true,
+    synchronize: process.env.NODE_ENV === CONSTANT_ENV.DEV || false,
     entities: [__dirname + '/../**/*.entity.{ts,js}'],
     maxQueryExecutionTime: 3000, // 3s
     poolSize: 10,
