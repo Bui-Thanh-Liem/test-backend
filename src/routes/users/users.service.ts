@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { IResponseFindAll } from 'src/interfaces/common/response.interface';
 import { CacheService } from 'src/share/cache/cache.service';
-import { generateCacheKeyAll, generateCacheKeyOne } from 'src/utils/generateCacheKey';
+import { generateCacheKeyAll } from 'src/utils/generateCacheKey';
 import { getPaginationParams } from 'src/utils/getPaginationParams ';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -109,11 +109,6 @@ export class UsersService {
     //
     await this.validateUser(userActiveId);
 
-    // Cache
-    const cacheKey = generateCacheKeyOne('user', userActiveId, id);
-    const cachedData = await this.cacheService.getCache<UserEntity>(cacheKey);
-    if (cachedData) return cachedData;
-
     //
     const user = await this.userRepository
       .createQueryBuilder('user')
@@ -131,13 +126,6 @@ export class UsersService {
 
     if (!user) {
       throw new NotFoundException('User not found');
-    }
-
-    //
-    try {
-      await this.cacheService.setCache(cacheKey, user, this.ttl);
-    } catch (error) {
-      throw new InternalServerErrorException('Could not cache, please try again later.');
     }
 
     return user;
@@ -203,8 +191,6 @@ export class UsersService {
 
     //
     try {
-      const cacheKey = generateCacheKeyOne('user', userActiveId, id);
-      await this.cacheService.deleteCache(cacheKey);
       await this.cacheService.deleteCacheByPattern(`users:${userActiveId}`);
     } catch (error) {
       this.logger.log(error);

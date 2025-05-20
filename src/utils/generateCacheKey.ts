@@ -29,7 +29,3 @@ export function generateCacheKeyAll(
   const safeQ = q ? encodeURIComponent(q) : '';
   return `${itemName}:all:user-${userActiveId}:page-${page}:limit-${limit}:q-${safeQ}`;
 }
-
-export function generateCacheKeyOne(itemName: string, userActiveId: string, idItem: string): string {
-  return `${itemName}:one:user-${userActiveId}:id-${idItem}`;
-}
