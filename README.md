@@ -1,49 +1,63 @@
 # Backend Project
 
 ## Overview
+
 This is a backend application built with **NestJS**, using **TypeORM** for database interaction, **Redis** for caching, and **JWT** for authentication. The project supports product management, user management, catalogs, and authentication with internationalization support for Vietnamese (`vi`) and English (`en`). It includes features like product liking, caching for performance optimization, and modular architecture.
 
 ## Setup & Installation Instructions
 
 ### Prerequisites
+
 - **Node.js**: Version 18.x or higher
 - **MySQL**: Version 8.x or higher
 - **Redis**: Version 6.x or higher
 - **npm**: Version 8.x or higher
 
 ### Installation
+
 1. **Clone the Repository**:
+
    ```bash
    git clone <repository-url>
    cd backend
    ```
 
 2. **Install Dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Configure Environment Variables**:
+
    - Create a `.env` file for production or `.env.dev` for development in the project root.
    - Example `.env` configuration:
      ```env
      NODE_ENV=development
-     DATABASE_HOST=localhost
-     DATABASE_PORT=3306
-     DATABASE_USERNAME=root
-     DATABASE_PASSWORD=your_password
-     DATABASE_NAME=your_database
+     DB_HOST=localhost
+     DB_PORT=3306
+     DB_USERNAME=root
+     DB_PASSWORD=your_password
+     DB_NAME=your_database
      REDIS_HOST=localhost
      REDIS_PORT=6379
-     JWT_SECRET=your_jwt_secret
+     APP_PORT=9000
+     SECRET_ACCESS_KEY=your_jwt_secret
+     SECRET_REFRESH_KEY=your_jwt_secret
+     ROOT_FULLNAME=your_name
+     ROOT_EMAIL=your_name@gmail.com
+     ROOT_PASSWORD=your_password
      ```
 
-4. **Set Up the Database**:
+4. **Set Up the Database and redis**:
+
    - Ensure MySQL is running.
    - Create a database in MySQL: `CREATE DATABASE your_database;`
    - TypeORM will automatically synchronize the schema based on the entities defined (e.g., `ProductEntity`).
+   - Ensure Redis is running.
 
 5. **Build and Run**:
+
    - Development mode (with watch):
      ```bash
      npm run start:dev
@@ -59,6 +73,7 @@ This is a backend application built with **NestJS**, using **TypeORM** for datab
      ```
 
 6. **Run Tests**:
+
    - Unit tests:
      ```bash
      npm run test
@@ -83,9 +98,11 @@ This is a backend application built with **NestJS**, using **TypeORM** for datab
      ```
 
 ## API Documentation
+
 The API is documented using **Swagger** and can be accessed at `http://localhost:9000/api` when the application is running. Below is a summary of the key endpoints:
 
 ### Authentication
+
 - **POST /auth/login**: Authenticate a user and return a JWT token.
   - Body:
     ```json
@@ -119,15 +136,18 @@ The API is documented using **Swagger** and can be accessed at `http://localhost
   - Response: `boolean`
 
 ### Products
+
 - **GET /products**: Retrieve a paginated list of products.
-  - Query Params: `page` (number), `limit` (number), `q` (search term), `lang` (either `vi` or `en`)
+  - Query Params: `page` (number), `limit` (number), `q` (string),
+  - Headers: `{ "accept-language": "vi" | "en" }`
   - Response: `{ "items": ProductEntity[], "totalItems": number }`
 - **GET /products/search?q=**: Retrieve a paginated list of products based on search term.
-  - Query Params: `page` (number), `limit` (number), `q` (search term), `lang` (either `vi` or `en`)
+  - Query Params: `page` (number), `limit` (number), `q` (string),
+  - Headers: `{ "accept-language": "vi" | "en" }`
   - Response: `{ "items": ProductEntity[], "totalItems": number }`
 - **GET /products/:id**: Retrieve a single product by ID.
   - Path Param: `id` (string)
-  - Query Param: `lang` (either `vi` or `en`)
+  - Headers: `{ "accept-language": "vi" | "en" }`
   - Response: `ProductEntity`
 - **POST /products**: Create a new product (requires authentication).
   - Body:
@@ -163,6 +183,7 @@ The API is documented using **Swagger** and can be accessed at `http://localhost
   - Response: `{ "productId": string, "likesCount": number }`
 
 ### Users
+
 - **POST /users**: Create a new user (requires authentication).
   - Body:
     ```json
@@ -194,6 +215,7 @@ The API is documented using **Swagger** and can be accessed at `http://localhost
   - Response: `true`
 
 ### Categories
+
 - **POST /categories**: Create a new category (requires authentication).
   - Body:
     ```json
@@ -229,10 +251,12 @@ The API is documented using **Swagger** and can be accessed at `http://localhost
   - Response: `true`
 
 **Notes**:
+
 - All endpoints except `/auth/login` and `/auth/register` are protected by **JwtAuthGuard** and require a valid JWT token in the `Authorization` header (Bearer token).
 - The `lang` query parameter or `accept-language` header defaults to `vi` (Vietnamese) if not specified.
 
 ## Caching
+
 Caching is implemented to improve performance by reducing database queries for frequently accessed data.
 
 - **Technology**: Uses **Redis** with `@nestjs/cache-manager` and `@keyv/redis` for distributed caching, with a fallback to in-memory caching using `CacheableMemory`.
@@ -247,6 +271,7 @@ Caching is implemented to improve performance by reducing database queries for f
 - **TTL**: Cache entries for product lists have a TTL of 180 seconds, with an additional 60 seconds for the key list to ensure cleanup.
 
 ## Optimization Strategies
+
 - **Database Queries**:
   - **TypeORM** is used with optimized `SelectQueryBuilder` to select only necessary fields and join related entities (`category`, `subCategory`, `createdBy`, `updatedBy`, `likes`).
   - Pagination is implemented using `skip` and `take` to limit the number of records fetched.
@@ -257,6 +282,7 @@ Caching is implemented to improve performance by reducing database queries for f
 - **Logging**: The `Logger` class is used to log cache hits/misses and database queries for debugging.
 
 ## Like Feature
+
 The like feature allows authenticated users to like or unlike products, with the following implementation details:
 
 - **Endpoint**: `POST /products/:id/like`
@@ -273,6 +299,7 @@ The like feature allows authenticated users to like or unlike products, with the
   - Returns an object with the `productId` and `likesCount`.
 
 ## Project Structure
+
 - **Modules**: Organized into `AuthModule`, `ProductsModule`, `UsersModule`, `CategoriesModule`, and `TokensModule` for modularity.
 - **Entities**: Defined using TypeORM (e.g., `ProductEntity` for products).
 - **Services**: Business logic is encapsulated in services like `ProductsService`, `UsersService`, and `CategoriesService`.
@@ -280,6 +307,7 @@ The like feature allows authenticated users to like or unlike products, with the
 - **Guards and Strategies**: `JwtAuthGuard` and `JwtAuthStrategy` handle JWT-based authentication.
 
 ## Contributing
+
 - Fork the repository.
 - Create a feature branch: `git checkout -b feature/your-feature`.
 - Commit changes: `git commit -m "Add your feature"`.
@@ -287,4 +315,5 @@ The like feature allows authenticated users to like or unlike products, with the
 - Open a pull request.
 
 ## License
+
 This project is unlicensed (`UNLICENSED`).

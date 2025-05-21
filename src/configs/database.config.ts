@@ -11,7 +11,7 @@ export default registerAs(
     port: Number(process.env.DB_PORT) || 3306,
     username: process.env.DB_USERNAME || 'root',
     password: process.env.DB_PASSWORD || 'root',
-    database: process.env.DB_DATABASE || 'profile',
+    database: process.env.DB_NAME || 'test',
     synchronize: process.env.NODE_ENV === CONSTANT_ENV.DEV || false,
     entities: [__dirname + '/../**/*.entity.{ts,js}'],
     maxQueryExecutionTime: 3000, // 3s
