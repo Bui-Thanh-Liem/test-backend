@@ -111,6 +111,14 @@ export class ProductsService {
       newProduct.subCategory = _subCategory;
     }
 
+    //
+    try {
+      this.logger.debug('DELETE - Cache');
+      await this.cacheService.deleteCacheByPattern(`products:${userActiveId}`);
+    } catch (error) {
+      throw new InternalServerErrorException('Unable to clear cache, please try again later.');
+    }
+
     return await this.productRepository.save(newProduct);
   }
 
