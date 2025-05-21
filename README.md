@@ -306,14 +306,8 @@ The like feature allows authenticated users to like or unlike products, with the
 - **DTOs**: Data Transfer Objects (`CreateProductDto`, `UpdateProductDto`, `CreateUserDto`, `CreateCategoryDto`) ensure structured input validation.
 - **Guards and Strategies**: `JwtAuthGuard` and `JwtAuthStrategy` handle JWT-based authentication.
 
-## Contributing
+## Author
 
-- Fork the repository.
-- Create a feature branch: `git checkout -b feature/your-feature`.
-- Commit changes: `git commit -m "Add your feature"`.
-- Push to the branch: `git push origin feature/your-feature`.
-- Open a pull request.
-
-## License
-
-This project is unlicensed (`UNLICENSED`).
+- **Name**: `Bui Thanh Liem`
+- **Email**: `buithanhliem5073@gmail.com`
+- **Phone**: `0375255073`
