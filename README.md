@@ -1,99 +1,185 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend Project
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Overview
+This is a backend application built with **NestJS**, utilizing **TypeORM** for database interactions, **Redis** for caching, and **JWT** for authentication. The project supports product management, user management, categories, and authentication with internationalization (i18n) support for Vietnamese (`vi`) and English (`en`) languages. It includes features like product liking, caching for performance optimization, and a modular architecture.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Setup & Installation Instructions
 
-## Description
+### Prerequisites
+- **Node.js**: Version 18.x or higher
+- **MySQL**: Version 8.x or higher
+- **Redis**: Version 6.x or higher
+- **npm**: Version 8.x or higher
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Installation
+1. **Clone the Repository**:
+   ```bash
+   git clone <repository-url>
+   cd backend
+   ```
 
-## Project setup
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-```bash
-$ npm install
-```
+3. **Configure Environment Variables**:
+   - Create a `.env` file for production or `.env.dev` for development in the project root.
+   - Example `.env` configuration:
+     ```env
+     NODE_ENV=development
+     DATABASE_HOST=localhost
+     DATABASE_PORT=3306
+     DATABASE_USERNAME=root
+     DATABASE_PASSWORD=your_password
+     DATABASE_NAME=your_database
+     REDIS_HOST=localhost
+     REDIS_PORT=6379
+     JWT_SECRET=your_jwt_secret
+     ```
 
-## Compile and run the project
+4. **Set Up the Database**:
+   - Ensure MySQL is running.
+   - Create a database in MySQL: `CREATE DATABASE your_database;`
+   - TypeORM will automatically synchronize the schema based on the entities defined (e.g., `ProductEntity`).
 
-```bash
-# development
-$ npm run start
+5. **Build and Run**:
+   - Development mode (with watch):
+     ```bash
+     npm run start:dev
+     ```
+   - Production mode:
+     ```bash
+     npm run build
+     npm run start:prod
+     ```
+   - Debug mode:
+     ```bash
+     npm run start:debug
+     ```
 
-# watch mode
-$ npm run start:dev
+6. **Run Tests**:
+   - Unit tests:
+     ```bash
+     npm run test
+     ```
+   - End-to-end tests:
+     ```bash
+     npm run test:e2e
+     ```
+   - Test with coverage:
+     ```bash
+     npm run test:cov
+     ```
 
-# production mode
-$ npm run start:prod
-```
+7. **Lint and Format**:
+   - Format code with Prettier:
+     ```bash
+     npm run format
+     ```
+   - Run ESLint to fix linting issues:
+     ```bash
+     npm run lint
+     ```
 
-## Run tests
+## API Documentation
+The API is documented using **Swagger** and can be accessed at `http://localhost:3000/api` when the application is running. Below is a summary of the key endpoints:
 
-```bash
-# unit tests
-$ npm run test
+### Authentication
+- **POST /auth/login**: Authenticate a user and return a JWT token.
+  - Body: `{ "username": string, "password": string }`
+  - Response: `{ "access_token": string }`
+- **POST /auth/register**: Register a new user.
+  - Body: `{ "username": string, "password": string, "email": string }`
+  - Response: `{ "id": string, "username": string, "email": string }`
 
-# e2e tests
-$ npm run test:e2e
+### Products
+- **GET /products**: Retrieve a paginated list of products.
+  - Query Params: `page` (number), `limit` (number), `q` (search term), `lang` (either `vi` or `en`)
+  - Response: `{ "items": Product[], "totalItems": number }`
+- **GET /products/:id**: Retrieve a single product by ID.
+  - Path Param: `id` (string)
+  - Query Param: `lang` (either `vi` or `en`)
+  - Response: `Product`
+- **POST /products**: Create a new product (requires authentication).
+  - Body: `{ "name_vi": string, "name_en": string, "price": number, "stock": number, "category": string | null, "subCategory": string | null }`
+  - Response: `Product`
+- **PATCH /products/:id**: Update an existing product (requires authentication).
+  - Path Param: `id` (string)
+  - Body: `{ "name_vi": string, "name_en": string, "price": number, "category": string | null, "subCategory": string | null }`
+  - Response: `Product`
+- **DELETE /products/:id**: Delete a product (requires authentication).
+  - Path Param: `id` (string)
+  - Response: `true`
+- **POST /products/:id/like**: Toggle like/unlike for a product (requires authentication).
+  - Path Param: `id` (string)
+  - Response: `{ "action": "liked" | "unliked", "product": Product }`
 
-# test coverage
-$ npm run test:cov
-```
+### Users
+- **GET /users**: Retrieve a list of users (requires authentication).
+- **GET /users/:id**: Retrieve a user by ID (requires authentication).
 
-## Deployment
+### Categories
+- **GET /categories**: Retrieve a list of categories with support for internationalization.
+- **GET /categories/:id**: Retrieve a specific category by ID.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+**Notes**:
+- All endpoints except `/auth/login` and `/auth/register` are protected by **JwtAuthGuard** and require a valid JWT token in the `Authorization` header (Bearer token).
+- The `lang` query parameter defaults to `vi` (Vietnamese) if not specified.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Caching
+Caching is implemented to improve performance by reducing database queries for frequently accessed data.
 
-```bash
-$ npm install -g mau
-$ mau deploy
-```
+- **Technology**: Uses **Redis** with `@nestjs/cache-manager` and `@keyv/redis` for distributed caching, with a fallback to in-memory caching using `CacheableMemory`.
+- **Configuration**:
+  - Redis configuration is loaded from environment variables (`REDIS_HOST`, `REDIS_PORT`) via `ConfigService`.
+  - In-memory cache has a TTL of 60 seconds and an LRU size of 5000 entries.
+- **Implementation**:
+  - The `CacheModule` is registered globally in `AppModule` with both in-memory and Redis stores.
+  - Cache keys are generated using `generateCacheKeyAll` to include user ID, page, limit, and search query for uniqueness.
+  - Cache is used in the `ProductsService` for the `findAll` method to cache product lists.
+  - Cache is invalidated (cleared) when products are updated, deleted, or liked/unliked using `deleteCacheByPattern`.
+- **TTL**: Cache entries for product lists have a TTL of 180 seconds, with an additional 60 seconds for the key list to ensure cleanup.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Optimization Strategies
+- **Database Queries**:
+  - **TypeORM** is used with optimized `SelectQueryBuilder` to select only necessary fields and join related entities (`category`, `subCategory`, `createdBy`, `updatedBy`, `likes`).
+  - Pagination is implemented using `skip` and `take` to limit the number of records fetched.
+  - Internationalization is handled efficiently by dynamically selecting fields based on the `lang` parameter (`name_vi`, `name_en`, etc.).
+- **Compression**: The `compression` middleware is used to reduce the size of HTTP responses.
+- **Validation**: Input validation is performed using `class-validator` and `class-transformer` to ensure data integrity.
+- **Error Handling**: Custom exceptions (`ConflictException`, `NotFoundException`, `InternalServerErrorException`) provide clear error messages.
+- **Logging**: The `Logger` class is used to log cache hits/misses and database queries for debugging.
 
-## Resources
+## Like Feature
+The like feature allows authenticated users to like or unlike products, with the following implementation details:
 
-Check out a few resources that may come in handy when working with NestJS:
+- **Endpoint**: `POST /products/:id/like`
+- **Logic**:
+  - The `toggleLike` method in `ProductsService` checks if the user has already liked the product.
+  - If the user has liked it, the like is removed, and the `numberLike` counter is decremented.
+  - If the user has not liked it, the user is added to the `likes` relation, and `numberLike` is incremented.
+- **Database**:
+  - The `ProductEntity` has a `likes` relation (Many-to-Many with `UserEntity`) and a `numberLike` field to track the total number of likes.
+  - Changes are persisted using `productRepository.save`.
+- **Cache Invalidation**:
+  - After liking or unliking, the cache for the user’s product list is cleared using `deleteCacheByPattern` to ensure updated like counts are reflected.
+- **Response**:
+  - Returns an object with the `action` (`liked` or `unliked`) and the updated `product` entity.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Project Structure
+- **Modules**: Organized into `AuthModule`, `ProductsModule`, `UsersModule`, `CategoriesModule`, and `TokensModule` for modularity.
+- **Entities**: Defined using TypeORM (e.g., `ProductEntity` for products).
+- **Services**: Business logic is encapsulated in services like `ProductsService`, `UsersService`, and `CategoriesService`.
+- **DTOs**: Data Transfer Objects (`CreateProductDto`, `UpdateProductDto`) ensure structured input validation.
+- **Guards and Strategies**: `JwtAuthGuard` and `JwtAuthStrategy` handle JWT-based authentication.
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Contributing
+- Fork the repository.
+- Create a feature branch: `git checkout -b feature/your-feature`.
+- Commit changes: `git commit -m "Add your feature"`.
+- Push to the branch: `git push origin feature/your-feature`.
+- Open a pull request.
 
 ## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is unlicensed (`UNLICENSED`).

@@ -1,12 +1,13 @@
-import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query, SerializeOptions } from '@nestjs/common';
 import { ResponseSuccess } from 'src/classes';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { ActiveUser } from 'src/decorators/activeUser.decorator';
 import { IPayloadToken } from 'src/interfaces/common';
+import { TTranslations } from 'src/types/translations.type';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductEntity } from './entities/product.entity';
 import { ProductsService } from './products.service';
-import { TTranslations } from 'src/types/translations.type';
 
 @Controller('products')
 export class ProductsController {

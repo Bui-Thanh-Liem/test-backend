@@ -2,13 +2,14 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { InjectRepository } from '@nestjs/typeorm';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { IResponseFindAll } from 'src/interfaces/common/response.interface';
-import { getPaginationParams } from 'src/utils/getPaginationParams ';
-import { Repository } from 'typeorm';
+import { TTranslations } from 'src/types/translations.type';
+import { getPaginationParams } from 'src/utils/getPaginationParams';
+import { mapKeys } from 'src/utils/mapKeys.util';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CategoryEntity } from './entities/category.entity';
-import { TTranslations } from 'src/types/translations.type';
 
 @Injectable()
 export class CategoriesService {
@@ -17,6 +18,42 @@ export class CategoriesService {
     private categoryRepository: Repository<CategoryEntity>,
     private userService: UsersService,
   ) {}
+
+  private buildCategoryQueryBuilder(
+    name: string,
+    lang: TTranslations,
+  ): { queryBuilder: SelectQueryBuilder<CategoryEntity>; fields: { name: string; description: string; slug: string } } {
+    const queryBuilder = this.categoryRepository.createQueryBuilder(name);
+
+    //
+    const fields = {
+      name: `name_${lang}`,
+      description: `description_${lang}`,
+      slug: `slug_${lang}`,
+    };
+
+    queryBuilder
+      .select([
+        'category.id',
+        `category.${fields.name}`,
+        `category.${fields.description}`,
+        `category.${fields.slug}`,
+        'category.createdAt',
+        'category.updatedAt',
+      ])
+      .leftJoinAndSelect('category.createdBy', 'createdBy')
+      .leftJoinAndSelect('category.updatedBy', 'updatedBy');
+
+    queryBuilder
+      .leftJoin('category.children', 'children')
+      .addSelect(['children.id', `children.name_${lang}`, `children.description_${lang}`, `children.slug_${lang}`]);
+
+    queryBuilder
+      .leftJoin('category.parent', 'parent')
+      .addSelect(['parent.id', `parent.name_${lang}`, `parent.description_${lang}`, `parent.slug_${lang}`]);
+
+    return { queryBuilder, fields };
+  }
 
   async create(payload: CreateCategoryDto, userActiveId: string): Promise<CategoryEntity> {
     const { name_vi, name_en, description_vi, description_en, parent } = payload;
@@ -52,73 +89,92 @@ export class CategoriesService {
   }
 
   async findAll(
-    lang: TTranslations,
+    lang: TTranslations = 'vi',
     queries: AQueries,
     userActiveId: string,
   ): Promise<IResponseFindAll<CategoryEntity>> {
     const { limit, page, q } = queries;
     const { skip, take } = getPaginationParams(page, limit);
-    const queryBuilder = this.categoryRepository.createQueryBuilder('category');
 
     //
     await this.userService.validateUser(userActiveId);
 
     //
-    queryBuilder.select([
-      'category.id',
-      `category.name_${lang} AS name`,
-      `category.description_${lang} AS description`,
-      `category.slug_${lang} AS slug`,
-      'category.createdAt',
-      'category.updatedAt',
-    ]);
+    const { queryBuilder, fields } = this.buildCategoryQueryBuilder('category', lang);
 
-    queryBuilder.leftJoinAndSelect('category.createdBy', 'createdBy');
-    queryBuilder.leftJoinAndSelect('category.updatedBy', 'updatedBy');
-    queryBuilder.leftJoinAndSelect('category.children', 'children');
-    queryBuilder.leftJoinAndSelect('category.parent', 'parent');
-
+    //
     if (q) {
       queryBuilder.where(`category.name_${lang} LIKE :q`, {
         q: `%${q.replace(/[%_]/g, '\\$&')}%`,
       });
     }
 
+    //
     queryBuilder.orderBy('category.createdAt', 'DESC');
     queryBuilder.skip(skip).take(take);
     const [items, totalItems] = await queryBuilder.getManyAndCount();
 
     //
-    return { items, totalItems };
+    const keyPairs: Array<[string, string]> = [
+      [fields.name, 'name'],
+      [fields.description, 'description'],
+      [fields.slug, 'slug'],
+    ];
+    const _items = mapKeys({
+      items: items,
+      keyPairs: keyPairs,
+      relations: [
+        {
+          key: 'parent',
+          keyPairs: keyPairs,
+        },
+        {
+          key: 'children',
+          keyPairs: keyPairs,
+        },
+      ],
+    }) as CategoryEntity[];
+
+    //
+    return { items: _items, totalItems };
   }
 
-  async findOneById(id: string, lang: TTranslations = 'vi'): Promise<any> {
-    const qb = this.categoryRepository.createQueryBuilder('category');
+  async findOneById(id: string, lang: TTranslations = 'vi'): Promise<CategoryEntity> {
+    const { queryBuilder, fields } = this.buildCategoryQueryBuilder('category', lang);
 
-    qb.select([
-      'category.id',
-      `category.name_${lang} AS name`,
-      `category.description_${lang} AS description`,
-      `category.slug_${lang} AS slug`,
-      'category.createdAt',
-      'category.updatedAt',
-    ]);
+    //
+    queryBuilder.where('category.id = :id', { id });
 
-    qb.leftJoinAndSelect('category.createdBy', 'createdBy');
-    qb.leftJoinAndSelect('category.updatedBy', 'updatedBy');
-    qb.leftJoinAndSelect('category.parent', 'parent');
-    qb.leftJoinAndSelect('category.children', 'children');
+    //
+    const category = await queryBuilder.getOne();
 
-    qb.where('category.id = :id', { id });
-
-    const categoryRaw = await qb.getRawOne();
-
-    if (!categoryRaw) {
+    if (!category) {
       throw new NotFoundException('Category not found');
     }
 
-    // Bạn có thể map lại kết quả nếu muốn
-    return categoryRaw;
+    //
+    const keyPairs: Array<[string, string]> = [
+      [fields.name, 'name'],
+      [fields.description, 'description'],
+      [fields.slug, 'slug'],
+    ];
+    const _item = mapKeys({
+      items: category,
+      keyPairs: keyPairs,
+      relations: [
+        {
+          key: 'parent',
+          keyPairs: keyPairs,
+        },
+        {
+          key: 'children',
+          keyPairs: keyPairs,
+        },
+      ],
+    }) as CategoryEntity;
+
+    //
+    return _item;
   }
 
   async update(id: string, payload: UpdateCategoryDto, userActiveId: string) {
@@ -176,7 +232,7 @@ export class CategoriesService {
     //
     const exists = await this.categoryRepository.exists({ where: { id } });
     if (!exists) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('Category not found');
     }
 
     //

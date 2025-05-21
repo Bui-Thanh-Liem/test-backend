@@ -3,12 +3,12 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from 'class-valida
 import { IProduct } from 'src/interfaces/model/product.model';
 
 export class CreateProductDto implements Partial<IProduct> {
-  @ApiProperty({ default: 'IPhone 14 Pro Max' })
+  @ApiProperty({ default: 'IPhone 14 Pro Max VietNamese' })
   @IsNotEmpty({ message: 'Name is required' })
   @IsString({ message: 'Name must be a string' })
   name_vi: string;
 
-  @ApiProperty({ default: 'IPhone 14 Pro Max' })
+  @ApiProperty({ default: 'IPhone 14 Pro Max English' })
   @IsNotEmpty({ message: 'Name is required' })
   @IsString({ message: 'Name must be a string' })
   name_en: string;
@@ -17,6 +17,11 @@ export class CreateProductDto implements Partial<IProduct> {
   @IsNotEmpty({ message: 'Price is required' })
   @IsNumber({}, { message: 'Price must be a number' })
   price: number;
+
+  @ApiProperty({ default: 100 })
+  @IsNotEmpty({ message: 'Stock is required' })
+  @IsNumber({}, { message: 'Stock must be a number' })
+  stock: number;
 
   @IsOptional()
   @IsUUID('4', { message: 'Category ID must be a valid UUID' })

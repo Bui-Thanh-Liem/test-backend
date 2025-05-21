@@ -12,5 +12,5 @@ export interface IProduct extends IBase {
   category: ICategory | string | null;
   subCategory: ICategory | string | null;
   likes: IUser[] | string[];
-  likesCount?: number;
+  numberLike?: number;
 }

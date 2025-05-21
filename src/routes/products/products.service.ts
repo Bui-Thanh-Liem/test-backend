@@ -3,20 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { IResponseFindAll } from 'src/interfaces/common/response.interface';
 import { CacheService } from 'src/share/cache/cache.service';
+import { TTranslations } from 'src/types/translations.type';
 import { generateCacheKeyAll } from 'src/utils/generateCacheKey';
-import { getPaginationParams } from 'src/utils/getPaginationParams ';
-import { Repository } from 'typeorm';
+import { getPaginationParams } from 'src/utils/getPaginationParams';
+import { mapKeys } from 'src/utils/mapKeys.util';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CategoriesService } from '../categories/categories.service';
 import { UsersService } from '../users/users.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ProductEntity } from './entities/product.entity';
-import { TTranslations } from 'src/types/translations.type';
 
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
-  private readonly ttl = 300;
+  private readonly ttl = 180;
 
   constructor(
     @InjectRepository(ProductEntity)
@@ -26,8 +27,53 @@ export class ProductsService {
     private readonly cacheService: CacheService,
   ) {}
 
+  private buildCategoryQueryBuilder(
+    name: string,
+    lang: TTranslations,
+  ): { queryBuilder: SelectQueryBuilder<ProductEntity>; fields: { name: string; slug: string } } {
+    const queryBuilder = this.productRepository.createQueryBuilder(name);
+
+    //
+    const fields = {
+      name: `name_${lang}`,
+      slug: `slug_${lang}`,
+    };
+
+    queryBuilder
+      .select([
+        'product.id',
+        `product.name_${lang}`,
+        'product.price',
+        'product.stock',
+        'product.numberLike',
+        `product.slug_${lang}`,
+        'product.createdAt',
+        'product.updatedAt',
+      ])
+      .leftJoinAndSelect('product.createdBy', 'createdBy')
+      .leftJoinAndSelect('product.updatedBy', 'updatedBy')
+      .leftJoinAndSelect('product.likes', 'likes');
+
+    //
+    queryBuilder
+      .leftJoin('product.category', 'category')
+      .addSelect(['category.id', `category.name_${lang}`, `category.description_${lang}`, `category.slug_${lang}`]);
+
+    queryBuilder
+      .leftJoin('product.subCategory', 'subCategory')
+      .addSelect([
+        'subCategory.id',
+        `subCategory.name_${lang}`,
+        `subCategory.description_${lang}`,
+        `subCategory.slug_${lang}`,
+      ]);
+
+    //
+    return { queryBuilder, fields };
+  }
+
   async create(payload: CreateProductDto, userActiveId: string): Promise<ProductEntity> {
-    const { name_vi, name_en, price, category, subCategory } = payload;
+    const { name_vi, name_en, price, stock, category, subCategory } = payload;
 
     //
     const creator = await this.userService.validateUser(userActiveId);
@@ -42,6 +88,7 @@ export class ProductsService {
     const newProduct = this.productRepository.create({
       name_vi,
       name_en,
+      stock,
       price,
       createdBy: creator,
     });
@@ -68,39 +115,26 @@ export class ProductsService {
   }
 
   async findAll(
-    lang: TTranslations,
+    lang: TTranslations = 'vi',
     queries: AQueries,
     userActiveId: string,
   ): Promise<IResponseFindAll<ProductEntity>> {
     const { limit, page, q } = queries;
     const { skip, take } = getPaginationParams(page, limit);
-    const queryBuilder = this.productRepository.createQueryBuilder('product');
 
     //
     await this.userService.validateUser(userActiveId);
 
-    // cache (many cache/products)
+    // cache
     const cacheKey = generateCacheKeyAll('products', userActiveId, +page, +limit, q);
     const cachedData = await this.cacheService.getCache<IResponseFindAll<ProductEntity>>(cacheKey);
-    this.logger.debug('GET - in cache');
-    if (cachedData) return cachedData;
+    if (cachedData) {
+      this.logger.debug('GET - in cache');
+      return cachedData;
+    }
 
     //
-    queryBuilder.select([
-      'product.id',
-      `product.name_${lang} AS name`,
-      'product.price',
-      'product.stock',
-      `product.slug_${lang} AS slug`,
-      'product.createdAt',
-      'product.updatedAt',
-    ]);
-
-    queryBuilder.leftJoinAndSelect('product.createdBy', 'createdBy');
-    queryBuilder.leftJoinAndSelect('product.updatedBy', 'updatedBy');
-    queryBuilder.leftJoinAndSelect('product.likes', 'likes');
-    queryBuilder.leftJoinAndSelect('product.category', 'category');
-    queryBuilder.leftJoinAndSelect('product.subCategory', 'subCategory');
+    const { queryBuilder, fields } = this.buildCategoryQueryBuilder('product', lang);
 
     if (q) {
       queryBuilder.where(`product.name_${lang} LIKE :q`, {
@@ -110,46 +144,83 @@ export class ProductsService {
 
     queryBuilder.orderBy('product.createdAt', 'DESC');
     queryBuilder.skip(skip).take(take);
+    this.logger.debug('GET - in database');
     const [items, totalItems] = await queryBuilder.getManyAndCount();
 
     //
+    const keyPairRelation: Array<[string, string]> = [
+      [`name_${lang}`, 'name'],
+      [`slug_${lang}`, 'slug'],
+      [`description_${lang}`, 'description'],
+    ];
+    const _items = mapKeys({
+      items: items,
+      keyPairs: [
+        [fields.name, 'name'],
+        [fields.slug, 'slug'],
+      ],
+      relations: [
+        {
+          key: 'category',
+          keyPairs: keyPairRelation,
+        },
+        {
+          key: 'subCategory',
+          keyPairs: keyPairRelation,
+        },
+      ],
+    }) as ProductEntity[];
+
+    //
     try {
-      await this.cacheService.setCache(cacheKey, { items, totalItems }, this.ttl);
+      await this.cacheService.setCache(cacheKey, { items: _items, totalItems }, this.ttl);
       await this.cacheService.addToKeyList(`products:${userActiveId}`, cacheKey, this.ttl + 60);
     } catch (error) {
       throw new InternalServerErrorException('Could not cache, please try again later.');
     }
 
     //
-    return { items, totalItems };
+    return { items: _items, totalItems };
   }
 
-  async findOneById(id: string, lang: TTranslations = 'vi') {
-    const qb = this.productRepository.createQueryBuilder('product');
+  async findOneById(id: string, lang: TTranslations = 'vi'): Promise<ProductEntity> {
+    const { queryBuilder, fields } = this.buildCategoryQueryBuilder('product', lang);
 
-    qb.select([
-      'product.id',
-      'product.price',
-      'product.stock',
-      `product.name_${lang} AS name`,
-      `product.slug_${lang} AS slug`,
-      'product.createdAt',
-      'product.updatedAt',
-    ]);
+    //
+    queryBuilder.where('product.id = :id', { id });
 
-    qb.leftJoinAndSelect('product.createdBy', 'createdBy');
-    qb.leftJoinAndSelect('product.updatedBy', 'updatedBy');
-    qb.leftJoinAndSelect('product.category', 'category');
-    qb.leftJoinAndSelect('product.subCategory', 'subCategory');
-    qb.where('category.id = :id', { id });
+    const product = await queryBuilder.getOne();
 
-    const product = await qb.getRawOne();
-
+    //
     if (!product) {
       throw new NotFoundException('Product not found');
     }
 
-    return product;
+    //
+    const keyPairRelation: Array<[string, string]> = [
+      [`name_${lang}`, 'name'],
+      [`slug_${lang}`, 'slug'],
+      [`description_${lang}`, 'description'],
+    ];
+    const _item = mapKeys({
+      items: product,
+      keyPairs: [
+        [fields.name, 'name'],
+        [fields.slug, 'slug'],
+      ],
+      relations: [
+        {
+          key: 'category',
+          keyPairs: keyPairRelation,
+        },
+        {
+          key: 'subCategory',
+          keyPairs: keyPairRelation,
+        },
+      ],
+    }) as ProductEntity;
+
+    return _item;
   }
 
   async update(id: string, payload: UpdateProductDto, userActiveId: string) {
@@ -220,6 +291,7 @@ export class ProductsService {
 
     //
     try {
+      this.logger.debug('DELETE - Cache');
       await this.cacheService.deleteCacheByPattern(`users:${userActiveId}`);
     } catch (error) {
       throw new InternalServerErrorException('Unable to clear cache, please try again later.');
@@ -240,6 +312,7 @@ export class ProductsService {
 
     //
     try {
+      this.logger.debug('DELETE - Cache');
       await this.cacheService.deleteCacheByPattern(`products:${userActiveId}`);
       return true;
     } catch (error) {
@@ -272,9 +345,11 @@ export class ProductsService {
     if (hasLiked) {
       // Unlike: Remove user from likes
       product.likes = product.likes.filter((u) => u.id !== userId);
+      product.numberLike = Math.max(0, product.numberLike - 1);
     } else {
       // Like: Add user to likes
       product.likes.push(user);
+      product.numberLike = (product.numberLike || 0) + 1;
     }
 
     try {

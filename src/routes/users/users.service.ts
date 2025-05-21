@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { IResponseFindAll } from 'src/interfaces/common/response.interface';
-import { getPaginationParams } from 'src/utils/getPaginationParams ';
+import { getPaginationParams } from 'src/utils/getPaginationParams';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';

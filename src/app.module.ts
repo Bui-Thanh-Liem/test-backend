@@ -1,8 +1,12 @@
+import { createKeyv } from '@keyv/redis';
 import { CacheModule, CacheModuleOptions } from '@nestjs/cache-manager';
-import { ClassSerializerInterceptor, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { CacheableMemory } from 'cacheable';
+import { RedisOptions } from 'ioredis';
+import { Keyv } from 'keyv';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CacheConfig, DatabaseConfig } from './configs';
@@ -15,11 +19,6 @@ import { ProductsModule } from './routes/products/products.module';
 import { UsersModule } from './routes/users/users.module';
 import { TokensModule } from './share/tokens/tokens.module';
 import { JwtAuthStrategy } from './strategies/auth.strategy';
-import { createKeyv } from '@keyv/redis';
-import { Keyv } from 'keyv';
-import { CacheableMemory } from 'cacheable';
-import { RedisOptions } from 'ioredis';
-import { TranslationsModule } from './routes/translations/translations.module';
 
 @Module({
   imports: [
@@ -74,16 +73,15 @@ import { TranslationsModule } from './routes/translations/translations.module';
     TokensModule,
     CategoriesModule,
     AuthModule,
-    TranslationsModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     JwtAuthStrategy,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ClassSerializerInterceptor,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: ClassSerializerInterceptor,
+    // },
     {
       provide: APP_GUARD, // toàn bộ ứng trừ Public()
       useClass: JwtAuthGuard,

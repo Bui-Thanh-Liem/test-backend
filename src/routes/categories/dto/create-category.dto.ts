@@ -17,7 +17,7 @@ export class CreateCategoryDto implements Partial<ICategory> {
   })
   name_vi: string;
 
-  @ApiProperty({ default: 'Đồng Hồ' })
+  @ApiProperty({ default: 'Watch' })
   @IsNotEmpty({ message: 'Name is required' })
   @IsString()
   @MinLength(FULLNAME_MIN, {

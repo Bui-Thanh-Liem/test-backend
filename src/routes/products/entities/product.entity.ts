@@ -1,4 +1,3 @@
-import { Expose } from 'class-transformer';
 import slugify from 'slugify';
 import { ABaseEntity } from 'src/classes/abstracts/ABaseEntity.abstract';
 import { IProduct } from 'src/interfaces/model/product.model';
@@ -23,7 +22,7 @@ export class ProductEntity extends ABaseEntity implements IProduct {
   @Column({ type: 'decimal', precision: 20, scale: 2 })
   price: number;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0, nullable: true })
   stock: number;
 
   @ManyToOne(() => CategoryEntity, { onDelete: 'SET NULL' })
@@ -48,10 +47,8 @@ export class ProductEntity extends ABaseEntity implements IProduct {
   })
   likes: UserEntity[];
 
-  @Expose()
-  get likesCount(): number {
-    return this.likes?.length || 0;
-  }
+  @Column({ type: 'int', default: 0 })
+  numberLike: number;
 
   @BeforeInsert()
   @BeforeUpdate()
