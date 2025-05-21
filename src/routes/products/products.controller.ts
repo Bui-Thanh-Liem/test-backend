@@ -1,12 +1,12 @@
-import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query, SerializeOptions } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, Param, Patch, Post, Query } from '@nestjs/common';
 import { ResponseSuccess } from 'src/classes';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { ActiveUser } from 'src/decorators/activeUser.decorator';
 import { IPayloadToken } from 'src/interfaces/common';
 import { TTranslations } from 'src/types/translations.type';
+import { accessLanguage } from 'src/validations/acceptLanguage.validate';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { ProductEntity } from './entities/product.entity';
 import { ProductsService } from './products.service';
 
 @Controller('products')
@@ -25,6 +25,7 @@ export class ProductsController {
     @Headers('accept-language') langHeader: TTranslations,
     @ActiveUser() activeUser: IPayloadToken,
   ) {
+    accessLanguage(langHeader);
     const results = await this.productsService.findAll(langHeader, queries, activeUser?.userId);
     return new ResponseSuccess('Success', results);
   }
@@ -35,6 +36,7 @@ export class ProductsController {
     @Headers('accept-language') langHeader: TTranslations,
     @ActiveUser() activeUser: IPayloadToken,
   ) {
+    accessLanguage(langHeader);
     const results = await this.productsService.findAll(langHeader, queries, activeUser?.userId);
     return new ResponseSuccess('Success', results);
   }
@@ -51,6 +53,7 @@ export class ProductsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Headers('accept-language') langHeader: TTranslations) {
+    accessLanguage(langHeader);
     const result = await this.productsService.findOneById(id, langHeader);
     return new ResponseSuccess('Success', result);
   }

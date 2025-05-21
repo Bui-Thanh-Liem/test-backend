@@ -130,7 +130,7 @@ The API is documented using **Swagger** and can be accessed at `http://localhost
     - `email`: Required, must be a valid email format.
     - `password`: Required, non-empty string.
     - `passwordConfirm`: Must match `password`.
-  - Response: `Omit<UserEntity, 'password'>`
+  - Response: `UserEntity`
 - **POST /auth/logout**: Logout (requires authentication).
   - Headers: `{ "token": string, "refreshToken": string }`
   - Response: `boolean`

@@ -3,11 +3,11 @@ import { ResponseSuccess } from 'src/classes';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { ActiveUser } from 'src/decorators/activeUser.decorator';
 import { IPayloadToken } from 'src/interfaces/common';
+import { TTranslations } from 'src/types/translations.type';
+import { accessLanguage } from 'src/validations/acceptLanguage.validate';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { TTranslations } from 'src/types/translations.type';
-
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
@@ -19,19 +19,15 @@ export class CategoriesController {
   }
 
   @Get()
-  async findAll(
-    @Query() queries: AQueries,
-    @Headers('accept-language') langHeader: TTranslations,
-    @ActiveUser() activeUser: IPayloadToken,
-  ) {
-    console.log('langHeader::', langHeader);
-
-    const results = await this.categoriesService.findAll(langHeader, queries, activeUser?.userId);
+  async findAll(@Query() queries: AQueries, @Headers('accept-language') langHeader: TTranslations) {
+    accessLanguage(langHeader);
+    const results = await this.categoriesService.findAll(langHeader, queries);
     return new ResponseSuccess('Success', results);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Headers('accept-language') langHeader: TTranslations) {
+    accessLanguage(langHeader);
     const result = await this.categoriesService.findOneById(id, langHeader);
     return new ResponseSuccess('Success', result);
   }

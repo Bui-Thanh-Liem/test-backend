@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query, SerializeOpti
 import { ResponseSuccess } from 'src/classes';
 import { AQueries } from 'src/classes/abstracts/AQuery.abstract';
 import { ActiveUser } from 'src/decorators/activeUser.decorator';
+import { Public } from 'src/decorators/public.decorator';
 import { IPayloadToken } from 'src/interfaces/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,12 +20,14 @@ export class UsersController {
     return new ResponseSuccess('Success', result);
   }
 
+  @Public()
   @Get()
   async findAll(@Query() queries: AQueries, @ActiveUser() activeUser: IPayloadToken) {
     const results = await this.usersService.findAll(queries, activeUser?.userId);
     return new ResponseSuccess('Success', results);
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const result = await this.usersService.findOneById(id);

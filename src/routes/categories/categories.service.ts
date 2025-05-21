@@ -88,16 +88,9 @@ export class CategoriesService {
     return await this.categoryRepository.save(newCategory);
   }
 
-  async findAll(
-    lang: TTranslations = 'vi',
-    queries: AQueries,
-    userActiveId: string,
-  ): Promise<IResponseFindAll<CategoryEntity>> {
+  async findAll(lang: TTranslations = 'vi', queries: AQueries): Promise<IResponseFindAll<CategoryEntity>> {
     const { limit, page, q } = queries;
     const { skip, take } = getPaginationParams(page, limit);
-
-    //
-    await this.userService.validateUser(userActiveId);
 
     //
     const { queryBuilder, fields } = this.buildCategoryQueryBuilder('category', lang);

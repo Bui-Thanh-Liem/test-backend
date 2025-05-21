@@ -130,9 +130,6 @@ export class ProductsService {
     const { limit, page, q } = queries;
     const { skip, take } = getPaginationParams(page, limit);
 
-    //
-    await this.userService.validateUser(userActiveId);
-
     // cache
     const cacheKey = generateCacheKeyAll('products', userActiveId, +page, +limit, q);
     const cachedData = await this.cacheService.getCache<IResponseFindAll<ProductEntity>>(cacheKey);
