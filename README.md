@@ -31,7 +31,7 @@ This is a backend application built with **NestJS**, using **TypeORM** for datab
 3. **Configure Environment Variables**:
 
    - Create a `.env` file for production or `.env.dev` for development in the project root.
-   - Example `.env` configuration:
+   - Example `.env.dev` configuration:
      ```env
      NODE_ENV=development
      DB_HOST=localhost
@@ -177,7 +177,7 @@ The API is documented using **Swagger** and can be accessed at `http://localhost
   - Response: `ProductEntity`
 - **DELETE /products/:id**: Delete a product (requires authentication).
   - Path Param: `id` (string)
-  - Response: `true`
+  - Response: `boolean`
 - **POST /products/:id/like**: Toggle like/unlike for a product (requires authentication).
   - Path Param: `id` (string)
   - Response: `{ "productId": string, "likesCount": number }`
@@ -212,7 +212,7 @@ The API is documented using **Swagger** and can be accessed at `http://localhost
   - Response: `Omit<UserEntity, 'password'>`
 - **DELETE /users/:id**: Delete a user (requires authentication).
   - Path Param: `id` (string)
-  - Response: `true`
+  - Response: `boolean`
 
 ### Categories
 
@@ -248,11 +248,11 @@ The API is documented using **Swagger** and can be accessed at `http://localhost
   - Response: `CategoryEntity`
 - **DELETE /categories/:id**: Delete a category (requires authentication).
   - Path Param: `id` (string)
-  - Response: `true`
+  - Response: `boolean`
 
 **Notes**:
 
-- All endpoints except `/auth/login` and `/auth/register` are protected by **JwtAuthGuard** and require a valid JWT token in the `Authorization` header (Bearer token).
+- All endpoints except `/auth/login` and `/auth/register` are protected by **JwtAuthGuard** and require a valid JWT stored in an HTTP-only cookie (e.g., `accessToken`),which is automatically sent by the client in the Cookie header for authenticated requests. Clients must include credentials in requests (e.g., `withCredentials`: `true` in HTTP clients).
 - The `lang` query parameter or `accept-language` header defaults to `vi` (Vietnamese) if not specified.
 
 ## Caching
