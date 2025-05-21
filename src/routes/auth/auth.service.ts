@@ -3,7 +3,9 @@ import * as bcrypt from 'bcrypt';
 import { IResponseLogin } from 'src/interfaces/common/response.interface';
 import { IUser } from 'src/interfaces/model/user.model';
 import { TokensService } from 'src/share/tokens/tokens.service';
+import { UserEntity } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
+import { RegisterAuthDto } from './dto/register-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -46,6 +48,10 @@ export class AuthService {
         refreshToken,
       },
     };
+  }
+
+  async register(payload: RegisterAuthDto): Promise<UserEntity> {
+    return await this.userService.create(payload);
   }
 
   async logout(token: string, refreshToken: string) {

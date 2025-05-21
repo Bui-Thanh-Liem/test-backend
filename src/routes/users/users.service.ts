@@ -23,11 +23,8 @@ export class UsersService {
     this.initialAdmin();
   }
 
-  async create(payload: CreateUserDto, userActiveId: string): Promise<UserEntity> {
+  async create(payload: CreateUserDto): Promise<UserEntity> {
     const { email, fullName } = payload;
-
-    // creator
-    const creator = await this.validateUser(userActiveId);
 
     // Check exist fullname
     const isExistFullname = await this.userRepository.existsBy({ fullName });
@@ -46,7 +43,6 @@ export class UsersService {
     delete payload.passwordConfirm;
     const dataCreate = this.userRepository.create({
       ...payload,
-      createdBy: creator,
     });
     return await this.userRepository.save(dataCreate);
   }

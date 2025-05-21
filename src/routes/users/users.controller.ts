@@ -14,8 +14,8 @@ export class UsersController {
 
   @Post()
   @SerializeOptions({ type: UserEntity })
-  async create(@Body() payload: CreateUserDto, @ActiveUser() activeUser: IPayloadToken) {
-    const result = await this.usersService.create(payload, activeUser?.userId);
+  async create(@Body() payload: CreateUserDto) {
+    const result = await this.usersService.create(payload);
     return new ResponseSuccess('Success', result);
   }
 

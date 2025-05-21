@@ -7,6 +7,7 @@ import { IUser } from 'src/interfaces/model/user.model';
 import { CookieService } from 'src/share/cookie/Cookie.service';
 import { AuthService } from './auth.service';
 import { LoginAuthDto } from './dto/login-auth.dto';
+import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LocalAuthGuard } from './strategy-local/local-auth.guard';
 
 @Controller('auth')
@@ -53,6 +54,13 @@ export class AuthController {
         tokens,
       }),
     );
+  }
+
+  @Public()
+  @Post('register')
+  async register(@Body() payload: RegisterAuthDto) {
+    const newUser = await this.authService.register(payload);
+    return new ResponseSuccess('Success', newUser);
   }
 
   @Post('logout')
