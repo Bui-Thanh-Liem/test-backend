@@ -2,7 +2,7 @@ import { createKeyv } from '@keyv/redis';
 import { CacheModule, CacheModuleOptions } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { CacheableMemory } from 'cacheable';
 import { RedisOptions } from 'ioredis';
@@ -12,6 +12,8 @@ import { AppService } from './app.service';
 import { CacheConfig, DatabaseConfig } from './configs';
 import { CONSTANT_CONFIG } from './constants/config.constant';
 import { CONSTANT_ENV } from './constants/env.contant';
+import { HttpExceptionFilter } from './exceptions/http.exception';
+import { TypeOrmExceptionFilter } from './exceptions/typeOrm.exception';
 import { JwtAuthGuard } from './guards/auth.guard';
 import { AuthModule } from './routes/auth/auth.module';
 import { CategoriesModule } from './routes/categories/categories.module';
@@ -82,6 +84,14 @@ import { JwtAuthStrategy } from './strategies/auth.strategy';
     //   provide: APP_INTERCEPTOR,
     //   useClass: ClassSerializerInterceptor,
     // },
+    {
+      provide: APP_FILTER,
+      useClass: TypeOrmExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
     {
       provide: APP_GUARD, // toàn bộ ứng trừ Public()
       useClass: JwtAuthGuard,

@@ -39,7 +39,6 @@
     "cookie-parser": "^1.4.7",
     "ioredis": "^5.6.1",
     "mysql2": "^3.14.1",
-    "nestjs-i18n": "^10.5.1",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.2.2",
